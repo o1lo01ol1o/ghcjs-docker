@@ -11,7 +11,7 @@ RUN curl -sL https://deb.nodesource.com/setup | bash - \
 ENV PATH /root/.cabal/bin:$PATH
 
 RUN cabal update && \
-    cabal install --reorder-goals --max-backjumps=-1  cabal-install Cabal-1.24.2.0 && \
+    cabal install --reorder-goals --max-backjumps=-1  cabal-install Cabal-2.2.0.1 && \
     echo $PATH && which cabal && cabal --version && \
     git clone https://github.com/ghcjs/ghcjs.git && \
     cabal install --reorder-goals --max-backjumps=-1 --force-reinstalls  ./ghcjs
