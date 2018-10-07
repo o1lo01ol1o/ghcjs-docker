@@ -1,33 +1,61 @@
-#Installs ghcjs 8.2
-FROM haskell:8.2
+FROM ubuntu:16.04
 
-RUN apt-get update \
-    && apt-get -y install build-essential git zlib1g-dev libtinfo-dev libgmp-dev autoconf curl gnupg -yq \
-    && curl -sL https://deb.nodesource.com/setup_8.x | bash \
-    && apt-get install nodejs -yq
+## ensure locale is set during build
+ENV LANG            C.UTF-8
 
-ENV PATH /root/.cabal/bin:$PATH
+## Haskell environment
+RUN echo 'deb http://ppa.launchpad.net/hvr/ghc/ubuntu xenial main' > \
+      /etc/apt/sources.list.d/ghc.list && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F6F88286 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      cabal-install-2.2 \
+      ghc-8.4.2 \
+      happy-1.19.5 \
+      alex-3.1.7 \
+      zlib1g-dev \
+      libtinfo-dev \
+      libsqlite3-0 \
+      libsqlite3-dev \
+      ca-certificates \
+      build-essential \
+      libgmp-dev \
+      autoconf \
+      automake \
+      curl \
+      g++ \
+      python3 \
+      git
 
-RUN cabal update && \
-    cabal install cabal-install Cabal alex happy && \
-    echo $PATH && which cabal && cabal --version
+ENV PATH /root/.cabal/bin:/root/.local/bin:/opt/cabal/bin:/opt/ghc/8.4.2/bin:/opt/happy/1.19.5/bin:/opt/alex/3.1.7/bin:$PATH
 
-RUN git clone https://github.com/ghcjs/ghcjs.git && \
-    cd ghcjs && \
-    git checkout ghc-8.2 && \
-    git submodule update --init --recursive && \
-    ./utils/makePackages.sh
+## node.js
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get install -y nodejs
 
-RUN cd ./ghcjs && \
+
+## build GHCJS
+WORKDIR /opt
+
+RUN cabal update
+
+ADD . ./ghcjs
+
+RUN cd /opt/ghcjs && \
+    ./utils/makePackages.sh && \
     ./utils/makeSandbox.sh && \
     cabal install
 
-ENV PATH /ghcjs/.cabal-sandbox/bin/:$PATH 
+ENV PATH /opt/ghcjs/.cabal-sandbox/bin:$PATH
 
-RUN ghcjs-boot
-
+RUN cd /opt/ghcjs && \
+    ghcjs-boot -v2 -s ./lib/boot/
+    
 # RUN cd /opt && git clone https://github.com/transient-haskell/transient.git && cd transient && cabal new-build && cabal new-build --ghcjs
 
 # RUN cd /opt && git clone https://github.com/transient-haskell/transient-universe.git && cd transient-universe && cabal new-build && cabal new-build --ghcjs
 
 # RUN cd /opt && git clone https://github.com/transient-haskell/axiom.git && cd axiom && cabal new-build && cabal new-build --ghcjs
+
+ENTRYPOINT ["ghcjs"]
+
