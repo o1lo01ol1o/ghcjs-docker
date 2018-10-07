@@ -39,7 +39,8 @@ WORKDIR /opt
 
 RUN cabal update
 
-ADD . ./ghcjs
+run cd /opt/ && git clone https://github.com/ghcjs/ghcjs.git --recursive && git checkout ghc-8.4 && git pull
+## ADD . ./ghcjs
 
 RUN cd /opt/ghcjs && \
     ./utils/makePackages.sh && \
