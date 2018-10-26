@@ -63,5 +63,7 @@ RUN cd /opt/ghcjs && \
 
 # RUN cd /opt && git clone https://github.com/transient-haskell/axiom.git && cd axiom && cabal new-build && cabal new-build --ghcjs
 
-ENTRYPOINT ["ghcjs"]
+# ENTRYPOINT ["ghcjs"]
+
+CMD bash
 
